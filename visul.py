@@ -72,37 +72,7 @@ def loss_fn(outputs, labels, mask):
 
 criterion = nn.MSELoss(reduction='none')
 net = Net()
-# optimizer = optim.Adam(net.parameters(), lr=lr)
-optimizer = optim.AdamW(net.parameters(), lr=lr)
-# optimizer = optim.SGD(net.parameters(), lr=lr)
-
-for epoch in range(300):
-    running_loss = 0.0
-    for i, data in enumerate(trainloader, 0):
-        inputs, labels, mask = data
-        # print(f'input.shape: {inputs.shape}')
-        # print(f'labels.shape: {labels.shape}')
-        # zero the parameter gradients
-        optimizer.zero_grad()
-        # forward + backward + optimize
-        outputs = net(inputs)
-        loss = loss_fn(outputs, labels, mask)
-        loss.backward()
-        # with torch.no_grad():
-        #     for param in net.parameters():
-        #         if param.grad is not None:
-        #             valid_grad = param.grad
-        #             if valid_grad == torch.nan:  # 检查是否存在有效梯度
-        #                 param.grad.zero_()  # 如果没有有效梯度，则清零
-        optimizer.step()
-        # print statistics
-        running_loss += loss.item()
-        if i % 20 == 19:    # print every 20 mini-batches
-            print('[%d, %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 20))
-            running_loss = 0.0
-print('Finished Training')
-torch.save(net.state_dict(), 'model_parameter')
+net.load_state_dict(torch.load('model_parameter'))
 
 def evaluation(trainloader):
     t, x, y = [], [], []
@@ -119,8 +89,15 @@ def evaluation(trainloader):
 t, x, y = evaluation(trainloader=trainloader)
 
 plt.figure()
-plt.scatter(t, x, label="x", color='blue', s=10)
-plt.scatter(t, y, label='y', color='orange', s=10)
-plt.title('Regression Result')
-plt.legend()
+# plt.scatter(t, x, label="x", color='blue', s=1)
+# plt.scatter(t, y, label='y', color='orange', s=1)
+# plt.title('Regression Result')
+# plt.legend()
+
+sorted_indices = np.argsort(t)
+t_sorted = t[sorted_indices]
+x_sorted = x[sorted_indices]
+y_sorted = y[sorted_indices]
+plt.plot(t_sorted, x_sorted, label='x', color='blue')
+plt.plot(t_sorted, y_sorted, label='y', color='orange')
 plt.show()

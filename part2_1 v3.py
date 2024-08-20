@@ -6,28 +6,36 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-BATCH_SIZE = 5
-lr = 0.0005
+BATCH_SIZE = 4
+lr = 0.0008
 
 
 class Net(nn.Module):
     '''Model to regress 2d time series values given scalar input.'''
-    def __init__(self, input_size=1, output_size=2, hidden_size_1=64, hidden_size_2=32, hidden_size_3=16):
+    def __init__(self, input_size=1, output_size=1, hidden_size_1=256, hidden_size_2=128, hidden_size_3=64, hidden_size_4=16):
         super(Net, self).__init__()
 
         # input
         self.layer_1 = nn.Linear(input_size, hidden_size_1)
         self.layer_2 = nn.Linear(hidden_size_1, hidden_size_2)
-        self.layer_3 = nn.Linear(hidden_size_2, hidden_size_3)
-        self.layer_4 = nn.Linear(hidden_size_3, output_size)
+        self.layer_3_1 = nn.Linear(hidden_size_2, hidden_size_3)
+        self.layer_3_2 = nn.Linear(hidden_size_2, hidden_size_3)
+        self.layer_4_1 = nn.Linear(hidden_size_3, hidden_size_4)
+        self.layer_4_2 = nn.Linear(hidden_size_3, hidden_size_4)
+        self.layer_5_1 = nn.Linear(hidden_size_4, output_size)
+        self.layer_5_2 = nn.Linear(hidden_size_4, output_size)
 
     def forward(self, x):
         x = x.reshape(BATCH_SIZE, -1)
         x = F.relu(self.layer_1(x))
         x = F.relu(self.layer_2(x))
-        x = F.relu(self.layer_3(x))
-        x = self.layer_4(x)
-        return x
+        x_3 = F.relu(self.layer_3_1(x))
+        y_3 = F.relu(self.layer_3_2(x))
+        x_4 = F.relu(self.layer_4_1(x_3))
+        y_4 = F.relu(self.layer_4_2(y_3))
+        x_5 = F.relu(self.layer_5_1(x_4))
+        y_5 = F.relu(self.layer_5_2(y_4))
+        return torch.concat([x_5, y_5], dim=1)
 
 class TimeSeriesDataset(torch.utils.data.Dataset):
 
@@ -70,7 +78,8 @@ def loss_fn(outputs, labels, mask):
 #   print(total_loss)
   return total_loss
 
-criterion = nn.MSELoss(reduction='none')
+# criterion = nn.MSELoss(reduction='none')
+criterion = nn.SmoothL1Loss(reduction='none')
 net = Net()
 # optimizer = optim.Adam(net.parameters(), lr=lr)
 optimizer = optim.AdamW(net.parameters(), lr=lr)
@@ -102,7 +111,7 @@ for epoch in range(300):
                   (epoch + 1, i + 1, running_loss / 20))
             running_loss = 0.0
 print('Finished Training')
-torch.save(net.state_dict(), 'model_parameter')
+torch.save(net.state_dict(), 'model_parameter_v3')
 
 def evaluation(trainloader):
     t, x, y = [], [], []
@@ -119,8 +128,8 @@ def evaluation(trainloader):
 t, x, y = evaluation(trainloader=trainloader)
 
 plt.figure()
-plt.scatter(t, x, label="x", color='blue', s=10)
-plt.scatter(t, y, label='y', color='orange', s=10)
+plt.scatter(t, x, label="x", color='blue', s=1)
+plt.scatter(t, y, label='y', color='orange', s=1)
 plt.title('Regression Result')
 plt.legend()
 plt.show()

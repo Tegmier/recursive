@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 
-# data = pd.read_csv('data.csv')
-# data = data.replace('-', 0).apply(pd.to_numeric)
+data = pd.read_csv('data.csv')
+data = data.replace('-', 0).apply(pd.to_numeric)
 # t = data["t"].to_numpy()
 # x = data["x"].to_numpy()
 # y = data["y"].to_numpy()
