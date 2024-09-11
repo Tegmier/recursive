@@ -47,8 +47,6 @@ class TimeSeriesDataset(torch.utils.data.Dataset):
         label = pd.concat([x, y], axis=1)
         self.label = torch.tensor(label.values, dtype= torch.float32)
         self.mask = ~torch.isnan(self.label)
-        # print(self.label)
-        # print(self.mask)
         self.t = torch.tensor(t.values, dtype=torch.float32)
 
     def __len__(self):
