@@ -39,7 +39,7 @@ class Net(nn.Module):
 
         # 通过第三个 MLP
         for layer in self.mlp3:
-            out2 = self.batch_norm(F.relu(layer(x)))
+            out2 = self.batch_norm(F.relu(layer(out1)))
 
         out1 = self.output_layer_1(out1)
         out2 = self.output_layer_2(out2)
@@ -54,12 +54,12 @@ class TimeSeriesDataset(torch.utils.data.Dataset):
         x = pd.to_numeric(data['x'].replace('-', np.nan))
         y = pd.to_numeric(data['y'].replace('-', np.nan))
 
-        self.label_x = torch.tensor(x.values, dtype=torch.float32)
-        self.label_y = torch.tensor(y.values, dtype=torch.float32)
+        self.label_x = torch.tensor(x.values, dtype=torch.float32).cuda()
+        self.label_y = torch.tensor(y.values, dtype=torch.float32).cuda()
 
-        self.mask_x = ~torch.isnan(self.label_x)
-        self.mask_y = ~torch.isnan(self.label_y)
-        self.t = torch.tensor(t.values, dtype=torch.float32)
+        self.mask_x = ~torch.isnan(self.label_x).cuda()
+        self.mask_y = ~torch.isnan(self.label_y).cuda()
+        self.t = torch.tensor(t.values, dtype=torch.float32).cuda()
 
     def __len__(self):
         return len(self.t)
@@ -81,19 +81,19 @@ def loss_fn(output_x, output_y, label_x, label_y, mask_x, mask_y):
 
   loss_x = criterion(output_x[mask_x], label_x[mask_x])
   loss_y = criterion(output_y[mask_y], label_y[mask_y])
-  loss_x = loss_x/loss_x.numel() if loss_x.numel() != 0 else torch.tensor(0,requires_grad=True, dtype=torch.float32)
-  loss_y = loss_y/loss_y.numel() if loss_y.numel() != 0 else torch.tensor(0,requires_grad=True, dtype=torch.float32)
+  loss_x = loss_x/loss_x.numel() if loss_x.numel() != 0 else torch.tensor(0,requires_grad=True, dtype=torch.float32).cuda()
+  loss_y = loss_y/loss_y.numel() if loss_y.numel() != 0 else torch.tensor(0,requires_grad=True, dtype=torch.float32).cuda()
   total_loss = 0.5*loss_x.mean()+ 0.5*loss_y.mean()
   return total_loss
 
-criterion = nn.MSELoss(reduction='none')
+criterion = nn.MSELoss(reduction='none').cuda()
 # criterion = nn.SmoothL1Loss(reduction='none')
-net = Net()
+net = Net().cuda()
 # optimizer = optim.Adam(net.parameters(), lr=lr)
 optimizer = optim.AdamW(net.parameters(), lr=lr)
 # optimizer = optim.SGD(net.parameters(), lr=lr)
 
-for epoch in range(200):
+for epoch in range(50):
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         inputs, label_x, label_y, mask_x, mask_y = data
@@ -116,9 +116,9 @@ def evaluation(trainloader):
         for i,data in enumerate(trainloader, 0):
             inputs, label_x, label_y, mask_x, mask_y = data
             output_x, output_y = net(inputs)
-            t.append(np.array(inputs.reshape(-1)))
-            x.append(np.array(output_x))
-            y.append(np.array(output_y))
+            t.append(np.array(inputs.reshape(-1).cpu()))
+            x.append(np.array(output_x.cpu()))
+            y.append(np.array(output_y.cpu()))
     return np.concatenate(t), np.concatenate(x), np.concatenate(y)
 
 t, x, y = evaluation(trainloader=trainloader)
