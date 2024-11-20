@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-BATCH_SIZE = 4
-lr = 0.001
+BATCH_SIZE = 20
+lr = 0.0008
 
 
 class Net(nn.Module):
@@ -20,7 +20,7 @@ class Net(nn.Module):
         self.input_layer = nn.Linear(input_size, hidden_size)
         self.output_layer_1 = nn.Linear(hidden_size, output_size)
         self.output_layer_2 = nn.Linear(hidden_size, output_size)
-        self.MLP_layers = 6
+        self.MLP_layers = 2
         self.batch_norm = nn.BatchNorm1d(num_features=hidden_size)
         self.mlp1 = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(self.MLP_layers)])
         self.mlp2 = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(self.MLP_layers)])
@@ -39,7 +39,7 @@ class Net(nn.Module):
 
         # 通过第三个 MLP
         for layer in self.mlp3:
-            out2 = self.batch_norm(F.relu(layer(out1)))
+            out2 = self.batch_norm(F.relu(layer(x)))
 
         out1 = self.output_layer_1(out1)
         out2 = self.output_layer_2(out2)
@@ -93,7 +93,7 @@ net = Net().cuda()
 optimizer = optim.AdamW(net.parameters(), lr=lr)
 # optimizer = optim.SGD(net.parameters(), lr=lr)
 
-for epoch in range(50):
+for epoch in range(300):
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         inputs, label_x, label_y, mask_x, mask_y = data

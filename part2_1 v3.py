@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-BATCH_SIZE = 4
+BATCH_SIZE = 20
 lr = 0.0008
 
 
@@ -87,22 +87,11 @@ for epoch in range(300):
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         inputs, labels, mask = data
-        # print(f'input.shape: {inputs.shape}')
-        # print(f'labels.shape: {labels.shape}')
-        # zero the parameter gradients
         optimizer.zero_grad()
-        # forward + backward + optimize
         outputs = net(inputs)
         loss = loss_fn(outputs, labels, mask)
         loss.backward()
-        # with torch.no_grad():
-        #     for param in net.parameters():
-        #         if param.grad is not None:
-        #             valid_grad = param.grad
-        #             if valid_grad == torch.nan:  # 检查是否存在有效梯度
-        #                 param.grad.zero_()  # 如果没有有效梯度，则清零
         optimizer.step()
-        # print statistics
         running_loss += loss.item()
         if i % 20 == 19:    # print every 20 mini-batches
             print('[%d, %5d] loss: %.3f' %

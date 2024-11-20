@@ -39,8 +39,6 @@ class TimeSeriesDataset(torch.utils.data.Dataset):
         label = pd.concat([x, y], axis=1)
         self.label = torch.tensor(label.values, dtype= torch.float32)
         self.mask = ~torch.isnan(self.label)
-        # print(self.label)
-        # print(self.mask)
         self.t = torch.tensor(t.values, dtype=torch.float32)
 
     def __len__(self):
@@ -119,8 +117,8 @@ def evaluation(trainloader):
 t, x, y = evaluation(trainloader=trainloader)
 
 plt.figure()
-plt.scatter(t, x, label="x", color='blue', s=10)
-plt.scatter(t, y, label='y', color='orange', s=10)
+plt.scatter(t, x, label="x", color='blue')
+plt.scatter(t, y, label='y', color='orange')
 plt.title('Regression Result')
 plt.legend()
 plt.show()
