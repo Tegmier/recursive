@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 
 data = pd.read_csv('data.csv')
 
+print(data.head(30))
+
 t = pd.to_numeric(data['t'])
 x = pd.to_numeric(data['x'].replace('-', np.nan))
 y = pd.to_numeric(data['y'].replace('-', np.nan))
@@ -15,4 +17,4 @@ y = pd.to_numeric(data['y'].replace('-', np.nan))
 plt.figure()
 plt.scatter(t, x, label="x", color='blue', s=1)
 plt.scatter(t, y, label='y', color='orange', s=1)
-plt.show()
+plt.savefig("figure/dataset_visulation.png")
