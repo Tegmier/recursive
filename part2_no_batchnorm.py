@@ -6,12 +6,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-BATCH_SIZE = 10
-lr = 0.001
+BATCH_SIZE = 32
+lr = 0.0008
 
 class Net(nn.Module):
     '''Model to regress 2d time series values given scalar input.'''
-    def __init__(self, input_size=1, hidden_size_1=64, hidden_size_2=32, hidden_size_3=16, output_size=1):
+    def __init__(self, input_size=1, hidden_size_1=128, hidden_size_2=64, hidden_size_3=16, output_size=1):
         super(Net, self).__init__()
         # two shared fc layers
         self.shared_layer1 = nn.Linear(input_size, hidden_size_1)
@@ -22,19 +22,19 @@ class Net(nn.Module):
         self.seperated_layer2_x = nn.Linear(hidden_size_3, output_size)
         self.seperated_layer2_y = nn.Linear(hidden_size_3, output_size)
         # batch_norm parameters
-        self.shared_bn1 = nn.BatchNorm1d(hidden_size_1)
-        self.shared_bn2 = nn.BatchNorm1d(hidden_size_2)
-        self.seperated_bn1_x = nn.BatchNorm1d(hidden_size_3)
-        self.seperated_bn1_y = nn.BatchNorm1d(hidden_size_3)
+        # self.shared_bn1 = nn.BatchNorm1d(hidden_size_1)
+        # self.shared_bn2 = nn.BatchNorm1d(hidden_size_2)
+        # self.seperated_bn1_x = nn.BatchNorm1d(hidden_size_3)
+        # self.seperated_bn1_y = nn.BatchNorm1d(hidden_size_3)
 
 
 
     def forward(self, x):
         x = x.reshape(-1, 1)
-        x = self.shared_bn1(F.relu(self.shared_layer1(x)))
-        x = self.shared_bn2(F.relu(self.shared_layer2(x)))
-        x_1 = self.seperated_bn1_x(F.relu(self.seperated_layer1_x(x)))
-        y_1 = self.seperated_bn1_y(F.relu(self.seperated_layer1_y(x)))
+        x = F.relu(self.shared_layer1(x))
+        x = F.relu(self.shared_layer2(x))
+        x_1 = F.relu(self.seperated_layer1_x(x))
+        y_1 = F.relu(self.seperated_layer1_y(x))
         out_x = self.seperated_layer2_x(x_1)
         out_y = self.seperated_layer2_y(y_1)
         return torch.concat([out_x, out_y], dim=1)
@@ -43,7 +43,6 @@ class TimeSeriesDataset(torch.utils.data.Dataset):
 
     def __init__(self, csv_file):
         data = pd.read_csv(csv_file)
-        data = data[(data['x']!='-') & (data['y']!='-')]
         t = pd.to_numeric(data['t'])
         x = pd.to_numeric(data['x'].replace('-', np.nan))
         y = pd.to_numeric(data['y'].replace('-', np.nan))
@@ -126,4 +125,4 @@ plt.scatter(t, x, label="x", color='blue', s=1)
 plt.scatter(t, y, label='y', color='orange', s=1)
 plt.title('Regression Result')
 plt.legend()
-plt.savefig("figure/2_1_1.png")
+plt.savefig("figure/2_no_batchnorm.png")
